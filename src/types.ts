@@ -77,3 +77,9 @@ export interface DevelopmentalResource {
   externalUrl: string;
   type: 'Free Public Program' | 'Pediatric Guide' | 'Play & Development' | 'Support Hotline';
 }
+
+export interface MonthAlertRecord {
+  lastAcknowledgedMonth: number;
+  lastNotifiedDate?: string;
+  enableBrowserNotifications?: boolean;
+}

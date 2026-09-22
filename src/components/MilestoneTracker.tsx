@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Compass, CheckCircle, Clock, Circle, HelpCircle, HeartHandshake, ShieldCheck, BookmarkPlus, ExternalLink, Sparkles, AlertCircle, Baby, Check, FileText } from 'lucide-react';
 import { Milestone, MilestoneDomain, ChildProfile, AgeCalculation } from '../types';
 import { isPastMilestoneAge, MILESTONE_AGE_BANDS } from '../utils/ageCalculator';
@@ -10,6 +10,7 @@ interface MilestoneTrackerProps {
   ageInfo: AgeCalculation;
   onOpenDoctorNotes: () => void;
   onOpenResources: () => void;
+  initialAgeBand?: number;
 }
 
 const DOMAIN_TABS: { id: MilestoneDomain | 'all'; label: string; icon: string }[] = [
@@ -27,9 +28,16 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
   ageInfo,
   onOpenDoctorNotes,
   onOpenResources,
+  initialAgeBand,
 }) => {
-  const [selectedAgeBand, setSelectedAgeBand] = useState<number>(ageInfo.milestoneAgeBand || 9);
+  const [selectedAgeBand, setSelectedAgeBand] = useState<number>(initialAgeBand || ageInfo.milestoneAgeBand || 9);
   const [selectedDomain, setSelectedDomain] = useState<MilestoneDomain | 'all'>('all');
+
+  useEffect(() => {
+    if (initialAgeBand) {
+      setSelectedAgeBand(initialAgeBand);
+    }
+  }, [initialAgeBand]);
 
   // Milestones in selected age band and domain
   const currentBandMilestones = useMemo(() => {

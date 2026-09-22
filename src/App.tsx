@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Compass, Heart, BookOpen, Baby, FileText, Moon, Sun } from 'lucide-react';
-import { ChildProfile, Milestone, PlayActivity, AgeCalculation } from './types';
+import { Sparkles, Compass, Heart, BookOpen, Baby, FileText, Moon, Sun, Bell } from 'lucide-react';
+import { ChildProfile, Milestone, PlayActivity, AgeCalculation, MonthAlertRecord } from './types';
 import {
   loadChildProfile,
   saveChildProfile,
@@ -10,6 +10,8 @@ import {
   saveFavorites,
   loadDarkMode,
   saveDarkMode,
+  loadMonthAlertRecord,
+  saveMonthAlertRecord,
 } from './utils/storage';
 import { calculateChildAge } from './utils/ageCalculator';
 import { Header } from './components/Header';
@@ -19,6 +21,7 @@ import { SavedActivities } from './components/SavedActivities';
 import { ResourcesSection } from './components/ResourcesSection';
 import { ChildProfileModal } from './components/ChildProfileModal';
 import { DoctorNotesModal } from './components/DoctorNotesModal';
+import { MonthlyMilestoneAlert } from './components/MonthlyMilestoneAlert';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'play' | 'milestones' | 'saved' | 'resources'>('play');
@@ -26,6 +29,11 @@ export default function App() {
   const [milestones, setMilestones] = useState<Milestone[]>(loadMilestones);
   const [favoriteActivities, setFavoriteActivities] = useState<PlayActivity[]>(loadFavorites);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(loadDarkMode);
+
+  // Milestone Month Alert Record
+  const [alertRecord, setAlertRecord] = useState<MonthAlertRecord>(loadMonthAlertRecord);
+  const [isMonthAlertManuallyOpen, setIsMonthAlertManuallyOpen] = useState(false);
+  const [targetMilestoneAgeBand, setTargetMilestoneAgeBand] = useState<number | undefined>(undefined);
 
   // Modals
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -35,6 +43,9 @@ export default function App() {
   const ageInfo: AgeCalculation = useMemo(() => {
     return calculateChildAge(childProfile);
   }, [childProfile]);
+
+  // Is a new month reached and pending acknowledgment?
+  const isMonthAlertPending = ageInfo.totalMonths > alertRecord.lastAcknowledgedMonth;
 
   // Count doctor flagged items
   const doctorNotesCount = useMemo(() => {
@@ -96,6 +107,17 @@ export default function App() {
     });
   };
 
+  const handleTriggerMonthAlertTest = () => {
+    // Reset acknowledged month to trigger alert for current child age
+    const updated: MonthAlertRecord = {
+      ...alertRecord,
+      lastAcknowledgedMonth: Math.max(0, ageInfo.totalMonths - 1),
+    };
+    saveMonthAlertRecord(updated);
+    setAlertRecord(updated);
+    setIsMonthAlertManuallyOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#FBF9F5] dark:bg-[#121820] text-stone-800 dark:text-stone-100 transition-colors duration-300 flex flex-col selection:bg-emerald-200 dark:selection:bg-emerald-900 pb-20 sm:pb-8">
       
@@ -111,10 +133,32 @@ export default function App() {
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         savedCount={favoriteActivities.length}
+        isMonthAlertPending={isMonthAlertPending}
+        onOpenMonthAlert={() => setIsMonthAlertManuallyOpen((prev) => !prev)}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        
+        {/* Monthly Milestone Visual Alert Banner */}
+        <MonthlyMilestoneAlert
+          childProfile={childProfile}
+          ageInfo={ageInfo}
+          alertRecord={alertRecord}
+          onUpdateAlertRecord={setAlertRecord}
+          onNavigateToMilestones={(band) => {
+            setTargetMilestoneAgeBand(band || ageInfo.milestoneAgeBand);
+            setActiveTab('milestones');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onNavigateToPlay={() => {
+            setActiveTab('play');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          isManuallyOpened={isMonthAlertManuallyOpen}
+          onCloseManual={() => setIsMonthAlertManuallyOpen(false)}
+        />
+
         {activeTab === 'play' && (
           <PlayGenerator
             childProfile={childProfile}
@@ -133,6 +177,7 @@ export default function App() {
             ageInfo={ageInfo}
             onOpenDoctorNotes={() => setIsDoctorNotesModalOpen(true)}
             onOpenResources={() => setActiveTab('resources')}
+            initialAgeBand={targetMilestoneAgeBand}
           />
         )}
 
@@ -168,7 +213,10 @@ export default function App() {
         >
           <Compass className="w-5 h-5" />
           <span>Milestones</span>
-          {doctorNotesCount > 0 && (
+          {isMonthAlertPending && (
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse absolute top-0 right-1 border border-white dark:border-stone-900" />
+          )}
+          {doctorNotesCount > 0 && !isMonthAlertPending && (
             <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-0 right-3" />
           )}
         </button>
@@ -200,7 +248,9 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
         currentProfile={childProfile}
         onSaveProfile={handleSaveProfile}
+        onTriggerMonthAlertTest={handleTriggerMonthAlertTest}
       />
+
 
       {/* Doctor Notes Modal */}
       <DoctorNotesModal

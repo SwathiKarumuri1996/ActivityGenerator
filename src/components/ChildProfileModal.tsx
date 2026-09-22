@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Baby, Calendar, Check, Info } from 'lucide-react';
+import { X, Baby, Calendar, Check, Info, Bell } from 'lucide-react';
 import { ChildProfile, AgeCalculation } from '../types';
 import { calculateChildAge } from '../utils/ageCalculator';
 
@@ -8,6 +8,7 @@ interface ChildProfileModalProps {
   onClose: () => void;
   currentProfile: ChildProfile;
   onSaveProfile: (profile: ChildProfile) => void;
+  onTriggerMonthAlertTest?: () => void;
 }
 
 export const ChildProfileModal: React.FC<ChildProfileModalProps> = ({
@@ -15,6 +16,7 @@ export const ChildProfileModal: React.FC<ChildProfileModalProps> = ({
   onClose,
   currentProfile,
   onSaveProfile,
+  onTriggerMonthAlertTest,
 }) => {
   const [name, setName] = useState(currentProfile.name);
   const [birthDate, setBirthDate] = useState(currentProfile.birthDate);
@@ -186,20 +188,37 @@ export const ChildProfileModal: React.FC<ChildProfileModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-xs transition-colors"
-            >
-              Save Profile
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-stone-100 dark:border-stone-800">
+            {onTriggerMonthAlertTest ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onTriggerMonthAlertTest();
+                  onClose();
+                }}
+                className="inline-flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-400 hover:underline self-start sm:self-auto"
+                title="Preview what parents see when a child reaches a new age month"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                <span>Preview/Test Monthly Milestone Alert</span>
+              </button>
+            ) : <div />}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-xs transition-colors"
+              >
+                Save Profile
+              </button>
+            </div>
           </div>
         </form>
       </div>

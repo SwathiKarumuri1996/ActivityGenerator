@@ -1,4 +1,4 @@
-import { ChildProfile, Milestone, PlayActivity } from '../types';
+import { ChildProfile, Milestone, PlayActivity, MonthAlertRecord } from '../types';
 import { OFFICIAL_MILESTONES } from '../data/milestonesData';
 import { CURATED_ACTIVITIES } from '../data/curatedActivities';
 
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   FAVORITES: 'nurtureplay_favorite_activities',
   DARK_MODE: 'nurtureplay_dark_mode',
   DOCTOR_NOTES: 'nurtureplay_doctor_notes',
+  MONTH_ALERT: 'nurtureplay_month_alert_record',
 };
 
 // Default child profile (e.g. 10 months old based on 2026 current date)
@@ -113,4 +114,38 @@ export function saveDarkMode(isDark: boolean): void {
   } catch (e) {
     console.warn('Error saving dark mode setting', e);
   }
+}
+
+export function loadMonthAlertRecord(): MonthAlertRecord {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.MONTH_ALERT);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.warn('Error loading month alert record', e);
+  }
+  return {
+    lastAcknowledgedMonth: 0,
+    enableBrowserNotifications: false,
+  };
+}
+
+export function saveMonthAlertRecord(record: MonthAlertRecord): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.MONTH_ALERT, JSON.stringify(record));
+  } catch (e) {
+    console.warn('Error saving month alert record', e);
+  }
+}
+
+export function acknowledgeMonthAlert(month: number): MonthAlertRecord {
+  const current = loadMonthAlertRecord();
+  const updated: MonthAlertRecord = {
+    ...current,
+    lastAcknowledgedMonth: Math.max(current.lastAcknowledgedMonth, month),
+    lastNotifiedDate: new Date().toISOString(),
+  };
+  saveMonthAlertRecord(updated);
+  return updated;
 }

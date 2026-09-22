@@ -1,6 +1,6 @@
 {
   "name": "Home Play & Milestone Companion",
-  "description": "Gentle, age-appropriate home play setup ideas using everyday household items, with automatic age tracking, favorite activities, milestone logging, and gentle doctor visit notes in a calming pastel interface.",
+  "description": "Gentle, age-appropriate home play setup ideas using everyday household items, with automatic age tracking, monthly milestone alerts, favorite activities, milestone logging, and gentle doctor visit notes in a calming pastel interface.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

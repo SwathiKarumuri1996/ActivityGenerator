@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Heart, Compass, Moon, Sun, Baby, ClipboardList, BookOpen, Clock } from 'lucide-react';
+import { Sparkles, Heart, Compass, Moon, Sun, Baby, ClipboardList, BookOpen, Clock, Bell } from 'lucide-react';
 import { ChildProfile, AgeCalculation } from '../types';
 
 interface HeaderProps {
@@ -13,6 +13,8 @@ interface HeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   savedCount: number;
+  isMonthAlertPending?: boolean;
+  onOpenMonthAlert?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
   isDarkMode,
   onToggleDarkMode,
   savedCount,
+  isMonthAlertPending,
+  onOpenMonthAlert,
 }) => {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 border-b border-stone-200/70 dark:border-stone-800 bg-[#FBF9F5]/90 dark:bg-[#121820]/90">
@@ -69,6 +73,32 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Icons & Dark Mode */}
           <div className="flex items-center gap-2">
             
+            {/* Monthly Milestone Reminder Bell */}
+            {onOpenMonthAlert && (
+              <button
+                id="header-month-alert-btn"
+                onClick={onOpenMonthAlert}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  isMonthAlertPending
+                    ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-100 border border-amber-300 dark:border-amber-700 shadow-xs ring-2 ring-amber-400/20'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/60 dark:hover:bg-stone-700'
+                }`}
+                title={
+                  isMonthAlertPending
+                    ? `New month alert: ${childProfile.name} reached ${ageInfo.totalMonths} months!`
+                    : `View ${ageInfo.totalMonths}-month milestone check`
+                }
+              >
+                <Bell className={`w-3.5 h-3.5 ${isMonthAlertPending ? 'text-amber-600 dark:text-amber-400' : ''}`} />
+                <span className="hidden sm:inline">
+                  {isMonthAlertPending ? `${ageInfo.totalMonths} Mo Checkpoint` : `${ageInfo.totalMonths} Mo`}
+                </span>
+                {isMonthAlertPending && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                )}
+              </button>
+            )}
+
             {/* Doctor Notes Quick Pill / Button */}
             <button
               id="header-doctor-notes-btn"
